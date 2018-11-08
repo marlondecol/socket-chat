@@ -1,76 +1,107 @@
-import socket as sk
-import os
+from socket import socket, AF_INET, SOCK_STREAM
+from threading import Thread
+import datetime, os
 
-def clear():
+def clearScreen():
 	os.system("cls" if os.name == "nt" else "clear")
 
-def send(sk, msg):
-	client_socket.send(bytes(input("Digite uma mensagem para enviar ao servidor: "), "utf-8"))
-
-serverHost = ""
-serverPort = 5005
-
-serverAddress = (serverHost, serverPort)
-
-serverSocket = sk.socket(sk.AF_INET, sk.SOCK_STREAM)
-
-serverSocket.setsockopt(sk.SOL_SOCKET, sk.SO_REUSEADDR, 1)
-serverSocket.bind(addr)
-
-while True:
-	clear()
+def showMenu():
+	menuOptions = {
+		1: "Enviar mensagens e arquivos",
+		2: "Acessar terminal remoto",
+		0: "Sair"
+	}
 
 	print("\n  O que deseja fazer?\n")
+	
+	for n, d in menuOptions.items():
+		print("  [{}] {}".format(n, d))
 
-	print("  [1] Enviar mensagens")
-	print("  [2] Acessar terminal remoto")
-	print("  [0] Sair\n")
+	opt = int(input("\n  Sua opção: "))
 
-	opt = int(input("  Sua opção: "))
+	clearScreen()
 
-	if not opt: break
+	if opt not in menuOptions.keys():
+		print("\n  Opção inválida! Tente novamente.")
+		return showMenu()
 
-	clear()
+	return opt
+
+def send(msg):
+	socket.send(bytes(msg, "utf-8"))
+
+def receiveMessage():
+	clearScreen()
+	
+	while True:
+		messages = socket.recv(1024).decode()
+
+		if not messages:
+			break
+
+		lastClient = ""
+
+		for client, time, name, text in messages:
+			message = "[" + time.strftime("%d/%m/%Y %H:%M:%S") + "] " + name + ": "
+			
+			if client != lastClient:
+				lastClient = client
+				message = "\n" + message
+
+			print(message)
+
+		print("\n  {:-^20}".format())
+
+def sendMessage():
+	while True:
+		msg = input("\n  Digite sua mensagem: ")
+
+		if msg == "\\quit":
+			socket.close()
+			break
+
+		send(msg)
+
+while True:
+	clearScreen()
+
+	opt = showMenu()
+
+	print(not opt)
+	break
+
+	if not opt:
+		break
 
 	if opt == 1:
-		chat = list()
+		host = input("\n  Digite o endereço do host: ")
+		port = input("  Digite a porta do host: ")
 
-		while True:
-			print("\n  Digite \\quit para sair")
-			print("\n  ----------\n")
+		port = 33000 if not port else int(port)
 
-			for time, name, msg in chat:
-				print("  [" + time + "] " + name + ": " + msg + "\n")
+		address = (host, port)
 
-			serverSocket.listen(10)
+		socket = socket(AF_INET, SOCK_STREAM)
+		socket.connect(address)
 
-			
-		# ip = input("\n  IP do destinatário: ")
-	# elif opt == 2:
+		send(opt)
 
-	"""
+		clearScreen()
 
-	serv_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		print("\n  Seja bem-vindo!\n")
+		
+		send(input("  Diga para seus amigos quem é você: "))
 
-	serv_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-	serv_socket.bind(addr)
+		receiveThread = Thread(target=receiveMessage)
+		sendThread = Thread(target=sendMessage)
 
-	while True:
-		serv_socket.listen(10)
+		receiveThread.start()
+		sendThread.start()
 
-		print("Aguardando conexao...")
+		receiveThread.join()
+		sendThread.join()
+	elif opt == 2:
+		host = input("\n  Digite o endereço do host: ")
+		port = input("  Digite a porta do host: ")
 
-		con, cliente = serv_socket.accept()
-
-		print("Conectado com", cliente)
-		print("Aguardando mensagem...")
-
-		msg = con.recv(1024).decode()
-
-		print("Mensagem recebida:", msg, "\n")
-
-		os.system(msg)
-
-		# serv_socket.close()
-		"""
 print()
