@@ -1,11 +1,25 @@
 from socket import socket, AF_INET, SOCK_STREAM
 from threading import Thread
-from os import system
 import datetime as dtm
-import pickle
+import os
 
-def clear():
-	system("cls" if os.name == "nt" else "clear")
+def clearScreen():
+	os.system("cls" if os.name == "nt" else "clear")
+
+def bindAddress():
+	try:
+		port = input("\n  Informe a porta deste socket (a padrão é 33000): ")
+		port = 33000 if not port or not port.isdigit() else int(port)
+
+		clearScreen()
+
+		serverSocket.bind(("", port))
+
+		return port
+	except OSError:
+		print("\n  Esta porta já está sendo usada! Tente usar uma outra.")
+
+		return bindAddress()
 
 def acceptIncomingConnections():
 	while True:
@@ -23,7 +37,8 @@ def handleClient(client):
 	if opt == 1:
 		name = client.recv(1024).decode("utf-8")
 
-		client.send(bytes("\nDigite \\quit quando quiser para sair.\n", "utf-8"))
+		client.send(bytes("\nDigite \\file para enviar um arquivo.\n", "utf-8"))
+		client.send(bytes("\nDigite \\quit para sair.\n", "utf-8"))
 		broadcast("[" + dtm.datetime.now().strftime("%d/%m/%Y %H:%M:%S") + "] {} se juntou à conversa!".format(name))
 
 		clients[client] = name
@@ -42,6 +57,9 @@ def handleClient(client):
 				broadcast("[" + dtm.datetime.now().strftime("%d/%m/%Y %H:%M:%S") + "] {} deixou a conversa.".format(name))
 				break
 
+			if msg == "\\file":
+
+
 			broadcast("[" + dtm.datetime.now().strftime("%d/%m/%Y %H:%M:%S") + "] " + name + ": " + msg)
 	# elif opt == 2:
 
@@ -50,19 +68,15 @@ def broadcast(msg):
 	for sock in clients:
 		sock.send(bytes(msg, "utf-8"))
 
+clearScreen()
+
 clients = {}
 addresses = {}
 
-serverPort = input("\n  Informe a porta deste socket (a padrão é 33000): ")
-
-serverPort = 33000 if not serverPort else int(serverPort)
-
-address = ("", serverPort)
-
 serverSocket = socket(AF_INET, SOCK_STREAM)
-serverSocket.bind(address)
+serverPort = bindAddress()
 
-print("\n  Utilizando a porta {}".format(serverPort))
+print("\n  Utilizando a porta {}.".format(serverPort))
 
 serverSocket.listen(5)
 

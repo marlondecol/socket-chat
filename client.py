@@ -1,9 +1,79 @@
+from socket import socket, gaierror, AF_INET, SOCK_STREAM
 from threading import Thread
-import socket as skt
 import os
 
 def clearScreen():
 	os.system("cls" if os.name == "nt" else "clear")
+
+# Permite a leitura de um arquivo.
+#
+# É informado o caminho completo,
+# o código faz as verificações necessárias
+# e retorna o objeto do arquivo para manipulá-lo.
+def readFile(file):
+	try:
+		# Verifica o caminho do arquivo.
+		if file[0] != "/":
+			file = os.getcwd() + "/" + file
+
+		# Recebe o caminho absoluto até o arquivo.
+		file = os.path.abspath(file)
+
+		# Se o arquivo existe, o mesmo é obtido
+		# em modo binário (letra "b" do segundo parâmetro)
+		return open(file, "rb")
+	except OSError:
+		# Se o arquivo não existe, exibe um feedback.
+		print("\n  Arquivo inexistente!\n")
+
+	exit()
+
+# Cria um arquivo se acordo com os parâmetros informados.
+#
+# O sufixo é incrementado toda vez
+# que há um arquivo com o mesmo nome.
+def createFile(file):
+	try:
+		# Caso o arquivo não existe, cria-o,
+		# também em modo binário, e retorna-o.
+		return open(file, "xb")
+	except FileExistsError:
+		# Se o arquivo já existe, exclui o mesmo
+		# para que possa ser substituído.
+		os.remove(file)
+
+		# E tenta criar o arquivo novamente.
+		return createFile(file)
+	except Exception:
+		# Exibe um feedback caso ocorra um erro inesperado.
+		print("\n  Um erro inesperado ocorreu!\n")
+
+	exit()
+
+def connectSocket():
+	try:
+		host = input("\n  Digite o endereço do host: ")
+
+		if not host:
+			raise ValueError
+
+		port = int(input("  Digite a porta do host: "))
+
+		clearScreen()
+
+		clientSocket.connect((host, port))
+
+		return
+	except ConnectionRefusedError:
+		print("\n  A conexão com este endereço foi recusada! Tente novamente.")
+	except gaierror:
+		print("\n  Endereço dessconhecido! Tente novamente.")
+	except ValueError:
+		clearScreen()
+
+		print("\n  Endereço ou porta inválido!")
+
+	return connectSocket()
 
 def showMenu():
 	menuOptions = {
@@ -30,6 +100,12 @@ def showMenu():
 def send(msg):
 	clientSocket.send(bytes(msg, "utf-8"))
 
+def receiveFile():
+
+def sendFile():
+	filename = input("Nome do arquivo: ")
+	clientSocket.send(bytes(msg, "utf-8"))
+
 def receiveMessage():
 	while True:
 		msg = clientSocket.recv(1024).decode("utf-8")
@@ -47,9 +123,13 @@ def sendMessage():
 	while True:
 		msg = input()
 
-		send(msg)
+		clientSocket.send(bytes(msg, "utf-8"))
 
 		if msg == "\\quit":
+			break
+
+		if msg == "\\file":
+			sendFile()
 			break
 
 while True:
@@ -61,31 +141,15 @@ while True:
 		break
 
 	if opt == 1:
-		host = input("\n  Digite o endereço do host: ")
+		clientSocket = socket(AF_INET, SOCK_STREAM)
 
-		if not host:
-			break
+		connectSocket()
 
-		port = input("  Digite a porta do host: ")
-
-		if not port or not port.isdigit():
-			break
-
-		port = int(port)
-
-		address = (host, port)
-
-		clientSocket = skt.socket(skt.AF_INET, skt.SOCK_STREAM)
-
-		clientSocket.connect(address)
-
-		send(str(opt))
-
-		clearScreen()
+		clientSocket.send(bytes(str(opt), "utf-8"))
 
 		print("\n  Seja bem-vindo!\n")
 		
-		send(input("  Diga para seus amigos quem é você: "))
+		clientSocket.send(bytes(input("  Diga para seus amigos quem é você: "), "utf-8"))
 
 		clearScreen()
 
@@ -102,20 +166,3 @@ while True:
 		port = input("  Digite a porta do host: ")
 
 print()
-
-"""
-import socket as skt
-
-ip = input("Digite o IP para conexão: ")
-port = 5005
-addr = (ip, port)
-
-clientSocket = sktsocket(sktAF_INET, sktSOCK_STREAM)
-
-clientSocket.connect(addr)
-clientSocket.send(bytes(input("Digite uma mensagem para enviar ao servidor: "), "utf-8"))
-
-print("Mensagem enviada!")
-
-clientSocket.close()
-"""
