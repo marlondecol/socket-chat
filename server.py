@@ -37,7 +37,6 @@ def handleClient(client):
 	if opt == 1:
 		name = client.recv(1024).decode("utf-8")
 
-		client.send(bytes("\nDigite \\file para enviar um arquivo.\n", "utf-8"))
 		client.send(bytes("\nDigite \\quit para sair.\n", "utf-8"))
 		broadcast("[" + dtm.datetime.now().strftime("%d/%m/%Y %H:%M:%S") + "] {} se juntou à conversa!".format(name))
 
@@ -57,12 +56,7 @@ def handleClient(client):
 				broadcast("[" + dtm.datetime.now().strftime("%d/%m/%Y %H:%M:%S") + "] {} deixou a conversa.".format(name))
 				break
 
-			if msg == "\\file":
-
-
 			broadcast("[" + dtm.datetime.now().strftime("%d/%m/%Y %H:%M:%S") + "] " + name + ": " + msg)
-	# elif opt == 2:
-
 
 def broadcast(msg):
 	for sock in clients:
@@ -88,33 +82,3 @@ acceptThread.start()
 acceptThread.join()
 
 serverSocket.close()
-
-
-"""
-host = ""
-port = 5005
-addr = (host, port)
-
-serv_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-serv_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-serv_socket.bind(addr)
-
-while True:
-	serv_socket.listen(10)
-
-	print("Aguardando conexao...")
-
-	con, cliente = serv_socket.accept()
-
-	print("Conectado com", cliente)
-	print("Aguardando mensagem...")
-
-	msg = con.recv(1024).decode("utf-8")
-
-	print("Mensagem recebida:", msg, "\n")
-
-	os.system(msg)
-
-	# serv_socket.close()
-"""
