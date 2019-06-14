@@ -22,7 +22,7 @@ def connectSocket():
 	except ConnectionRefusedError:
 		print("\n  A conexão com este endereço foi recusada! Tente novamente.")
 	except gaierror:
-		print("\n  Endereço dessconhecido! Tente novamente.")
+		print("\n  Endereço desconhecido! Tente novamente.")
 	except ValueError:
 		clearScreen()
 
